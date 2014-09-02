@@ -126,7 +126,7 @@ public class ItemPriceRecord {
                 psUpdateItem.executeUpdate();
 
                 log.debug(psUpdateItem.toString());
-                log.info("UPDATED: " + itemName + " Station: " + stationName);
+                log.info("UPDATED Item: " + itemName + " Station: " + stationName);
             } else {
                 log.error("Item not found:" + itemName);
             }

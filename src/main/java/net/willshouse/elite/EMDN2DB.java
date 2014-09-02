@@ -11,11 +11,11 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 
 /**
- * App
+ * EMDN2DB
  */
-public class App {
+public class EMDN2DB {
     static final Thread mainThread = Thread.currentThread();
-    public static Logger log = Logger.getLogger(App.class);
+    public static Logger log = Logger.getLogger(EMDN2DB.class);
     private static Context context;
 
     public static void main(String[] args) {
