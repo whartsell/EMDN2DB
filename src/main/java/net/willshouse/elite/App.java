@@ -29,10 +29,10 @@ public class App
         try {
             conn = setupDB();
         } catch (SQLException e) {
-            log.fatal(e);
+            log.fatal(e.toString(),e);
             System.exit(1);
         } catch (ClassNotFoundException e) {
-            log.fatal(e);
+            log.fatal(e.toString(),e);
             System.exit(1);
         }
 
