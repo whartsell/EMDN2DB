@@ -15,7 +15,7 @@ public class ItemPriceRecord {
     private static final String qItemID = "SELECT ID FROM ITEMS WHERE upper(PSUDONYM) = upper(?)";
     private static final String qUpdateItem = "UPDATE PRICES SET BUY_CR = ?, SELL_CR = ?,LASTUPDATE= ?  WHERE STATION_ID = ? AND ITEM_ID=?";
 
-    private int buyPrice,sellPrice,demand,demandLevel,stationStock,stationStockLevel,itemID,stationID;
+    private int buyPrice, sellPrice, demand, demandLevel, stationStock, stationStockLevel, itemID, stationID;
     private String categoryName;
     private String itemName;
     private String stationName;
@@ -25,7 +25,7 @@ public class ItemPriceRecord {
     private Logger log = Logger.getLogger(ItemPriceRecord.class);
 
     public ItemPriceRecord(String data) {
-        message = data.split(",",-1);
+        message = data.split(",", -1);
         setupItemPrice();
 
     }
@@ -79,10 +79,6 @@ public class ItemPriceRecord {
     }
 
 
-
-
-
-
     private void setupItemPrice() {
 
         buyPrice = Integer.parseInt(message[0]);
@@ -93,15 +89,14 @@ public class ItemPriceRecord {
         stationStockLevel = Integer.parseInt(message[5]);
         categoryName = message[6];
         itemName = message[7];
-        Pattern p = Pattern.compile("\\((.*?)\\)",Pattern.DOTALL);
+        Pattern p = Pattern.compile("\\((.*?)\\)", Pattern.DOTALL);
         Matcher matcher = p.matcher(message[8]);
         if (matcher.find()) {
             stationName = matcher.group(1);
-        }
-        else stationName = "NOT FOUND";
+        } else stationName = "NOT FOUND";
         int index = message[8].indexOf("(");
-        systemName = message[8].substring(0,index).trim();
-        time = Timestamp.valueOf(message[9].replaceAll("T"," "));
+        systemName = message[8].substring(0, index).trim();
+        time = Timestamp.valueOf(message[9].replaceAll("T", " "));
         stationID = 0;
         itemID = 0;
 
@@ -110,37 +105,35 @@ public class ItemPriceRecord {
     public void updateDB(Connection conn) throws SQLException {
 
         PreparedStatement psStationID = conn.prepareStatement(qStationID);
-        psStationID.setString(1,stationName);
-        psStationID.setString(2,systemName);
+        psStationID.setString(1, stationName);
+        psStationID.setString(2, systemName);
         ResultSet rs = psStationID.executeQuery();
         if (rs.first()) {
             stationID = rs.getInt("ID");
             log.debug("StationID:" + stationID);
             PreparedStatement psItemID = conn.prepareStatement(qItemID);
-            psItemID.setString(1,itemName);
+            psItemID.setString(1, itemName);
             rs = psStationID.executeQuery();
-            if(rs.first()) {
+            if (rs.first()) {
                 itemID = rs.getInt(rs.findColumn("ID"));
                 log.debug("ItemID:" + itemID);
                 PreparedStatement psUpdateItem = conn.prepareCall(qUpdateItem);
-                psUpdateItem.setInt(1,buyPrice);
-                psUpdateItem.setInt(2,sellPrice);
+                psUpdateItem.setInt(1, buyPrice);
+                psUpdateItem.setInt(2, sellPrice);
                 psUpdateItem.setTimestamp(3, time);
                 psUpdateItem.setInt(4, stationID);
-                psUpdateItem.setInt(5,itemID);
+                psUpdateItem.setInt(5, itemID);
                 psUpdateItem.executeUpdate();
 
-                log.info(psUpdateItem.toString());
-                log.info("UPDATED");
-            }
-            else {
+                log.debug(psUpdateItem.toString());
+                log.info("UPDATED: " + itemName + " Station: " + stationName);
+            } else {
                 log.error("Item not found:" + itemName);
             }
-        }
-        else {
-            log.error("Station not found. System: " + systemName +" Station: " + stationName);
+        } else {
+            log.error("Station not found. System: " + systemName + " Station: " + stationName);
         }
 
 
-        }
+    }
 }
