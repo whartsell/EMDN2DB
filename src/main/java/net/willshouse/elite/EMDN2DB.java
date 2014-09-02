@@ -14,11 +14,13 @@ import java.sql.SQLException;
  * EMDN2DB
  */
 public class EMDN2DB {
+
     static final Thread mainThread = Thread.currentThread();
     public static Logger log = Logger.getLogger(EMDN2DB.class);
     private static Context context;
 
     public static void main(String[] args) {
+
         Runtime.getRuntime().addShutdownHook(new Thread() {
             public void run() {
                 log.info("Shutdown detected");
@@ -31,6 +33,7 @@ public class EMDN2DB {
                 }
             }
         });
+
         log.info("Starting Up...");
         // Prepare our context and subscriber
         String message;
@@ -38,22 +41,12 @@ public class EMDN2DB {
         Socket subscriber = context.socket(ZMQ.SUB);
         ItemPriceRecord priceInfo;
         Connection conn = null;
-
-
-        try {
-            conn = setupDB();
-        } catch (SQLException e) {
-            log.fatal(e.toString(), e);
-            System.exit(1);
-        } catch (ClassNotFoundException e) {
-            log.fatal(e.toString(), e);
-            System.exit(1);
-        }
-
+        conn = setupDB();
         subscriber.connect("tcp://firehose.elite-market-data.net:9050");
         // a subscription socket MUST subscribe to something.  Even if in our case its ""
         subscriber.subscribe("".getBytes());
         log.info("Starting Listener");
+
         while (!mainThread.isInterrupted()) {
             log.debug("Waiting for Message");
             // this is a blocking call. waiting for message
@@ -62,25 +55,26 @@ public class EMDN2DB {
                 priceInfo = new ItemPriceRecord(message);
                 //dump out data for now
                 log.debug(message);
-                try {
-                    priceInfo.updateDB(conn);
-                } catch (SQLException e) {
-                    log.error(e.toString(), e);
+                priceInfo.updateDB(conn);
 
-                }
             } catch (ZMQException e) {
-                if (e.getErrorCode() == ZMQ.Error.ETERM.getCode()) {
-                    log.info("Stopping Listener");
-                    break;
-                } else {
-                    log.error(e.toString(), e);
-                }
+
+                    if (e.getErrorCode() == ZMQ.Error.ETERM.getCode()) {
+                        log.info("Stopping Listener");
+                        break;
+                    } else {
+                        log.error(e.toString(), e);
+                    }
+
+            } catch (SQLException e) {
+                log.error(e.toString(),e);
             }
         }
 
-        subscriber.close();
-        log.info("Listener Stopped");
+
         try {
+            subscriber.close();
+            log.info("Listener Stopped");
             log.info("Closing DB connection");
             conn.close();
         } catch (SQLException e) {
@@ -88,15 +82,20 @@ public class EMDN2DB {
             log.error("Problem closing the DB:" + e.toString(), e);
         }
         log.info("ShutDown Completed");
-        System.exit(0);
     }
 
 
-    private static Connection setupDB() throws SQLException, ClassNotFoundException {
+    private static Connection setupDB() {
+        Connection conn = null;
         log.info("Connecting to DB");
-        Class.forName("org.h2.Driver");
-        Connection conn = DriverManager.
-                getConnection("jdbc:h2:tcp://localhost/~/test;IGNORECASE=TRUE", "sa", "");
+        try {
+            Class.forName("org.h2.Driver");
+            conn = DriverManager.
+                    getConnection("jdbc:h2:tcp://localhost/~/test;IGNORECASE=TRUE", "sa", "");
+        } catch (ClassNotFoundException|SQLException e) {
+            log.fatal(e.toString(),e);
+
+        }
         log.info("Connected");
         return conn;
     }
