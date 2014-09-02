@@ -134,11 +134,11 @@ public class ItemPriceRecord {
                 log.info("UPDATED");
             }
             else {
-                log.error("Item not found:" + psItemID.toString());
+                log.error("Item not found:" + itemName);
             }
         }
         else {
-            log.error("Station not found:" + psStationID.toString());
+            log.error("Station not found. System: " + systemName +" Station: " + stationName);
         }
 
 
