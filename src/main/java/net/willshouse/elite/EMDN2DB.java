@@ -91,7 +91,7 @@ public class EMDN2DB {
         try {
             Class.forName("org.h2.Driver");
             conn = DriverManager.
-                    getConnection("jdbc:h2:tcp://localhost/~/test;IGNORECASE=TRUE", "sa", "");
+                    getConnection("jdbc:h2:tcp://localhost/./db/emdn2db;IGNORECASE=TRUE", "sa", "");
         } catch (ClassNotFoundException|SQLException e) {
             log.fatal(e.toString(),e);
 

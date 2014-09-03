@@ -12,7 +12,7 @@ import java.util.regex.Pattern;
 public class ItemPriceRecord {
 
     private static final String qStationID = "SELECT ID FROM STATIONS WHERE upper(STATION) = upper(?) AND upper(SYSTEM) = upper(?)";
-    private static final String qItemID = "SELECT ID FROM ITEMS WHERE upper(PSUDONYM) = upper(?)";
+    private static final String qItemID = "SELECT ID FROM ITEMS WHERE upper(PSEUDONYM) = upper(?)";
     private static final String qUpdateItem = "UPDATE PRICES SET BUY_CR = ?, SELL_CR = ?,LASTUPDATE= ?  WHERE STATION_ID = ? AND ITEM_ID=?";
 
     private int buyPrice, sellPrice, demand, demandLevel, stationStock, stationStockLevel, itemID, stationID;
@@ -108,14 +108,17 @@ public class ItemPriceRecord {
         psStationID.setString(1, stationName);
         psStationID.setString(2, systemName);
         ResultSet rs = psStationID.executeQuery();
+        log.debug(psStationID.toString());
         if (rs.first()) {
             stationID = rs.getInt("ID");
+            rs.close();
             log.debug("StationID:" + stationID);
             PreparedStatement psItemID = conn.prepareStatement(qItemID);
             psItemID.setString(1, itemName);
-            rs = psStationID.executeQuery();
+            rs = psItemID.executeQuery();
+            log.debug(psItemID.toString());
             if (rs.first()) {
-                itemID = rs.getInt(rs.findColumn("ID"));
+                itemID = rs.getInt("ID");
                 log.debug("ItemID:" + itemID);
                 PreparedStatement psUpdateItem = conn.prepareCall(qUpdateItem);
                 psUpdateItem.setInt(1, buyPrice);
@@ -126,7 +129,7 @@ public class ItemPriceRecord {
                 psUpdateItem.executeUpdate();
 
                 log.debug(psUpdateItem.toString());
-                log.info("UPDATED Item: " + itemName + " Station: " + stationName);
+                log.info("UPDATED Item:" + itemName + " Station:" + stationName + " Buy_CR:" + buyPrice + " Sell_CR:" + sellPrice);
             } else {
                 log.error("Item not found:" + itemName);
             }
